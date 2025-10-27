@@ -2,8 +2,10 @@ from datetime import datetime
 import logging
 from fastapi import HTTPException
 from sqlalchemy import func, exists, and_
+from sqlalchemy.orm import joinedload
+
 from database import SessionLocal
-from models import Chat, User, ChatLikes
+from models import Chat, User, ChatLikes, Poll
 
 logger = logging.getLogger(__name__)
 
@@ -31,17 +33,18 @@ def add_chat(message: str, current_user: User):
 
 def get_all_chats(current_user: User | None):
     db = SessionLocal()
-
     try:
-        # Default query
+        # Base query with joins for user, poll, and poll options
         base_query = (
             db.query(
                 Chat.id,
                 Chat.user_id,
                 User.name.label("name"),
                 Chat.message,
+                Chat.type,
+                Chat.poll_id,
                 func.count(ChatLikes.id).label("likes_count"),
-                Chat.created_at
+                Chat.created_at,
             )
             .join(User, Chat.user_id == User.id)
             .outerjoin(ChatLikes, ChatLikes.chat_id == Chat.id)
@@ -49,29 +52,14 @@ def get_all_chats(current_user: User | None):
             .order_by(Chat.created_at.asc())
         )
 
-        chats = base_query.all()
-
-        if not current_user:
-            chat_list = [
-                {
-                    "id": c.id,
-                    "user_id": c.user_id,
-                    "name": c.name,
-                    "message": c.message,
-                    "likes": c.likes_count,
-                    "is_liked": False,  # always false when user not logged in
-                    "created_at": c.created_at,
-                }
-                for c in chats
-            ]
-        else:
-            # When user logged in, only then run EXISTS subquery
+        if current_user:
+            # Add EXISTS subquery to check if current user has liked chat or not
             liked_subquery = (
                 db.query(ChatLikes.id)
                 .filter(
                     and_(
                         ChatLikes.chat_id == Chat.id,
-                        ChatLikes.user_id == current_user.id
+                        ChatLikes.user_id == current_user.id,
                     )
                 )
                 .correlate(Chat)
@@ -84,6 +72,8 @@ def get_all_chats(current_user: User | None):
                     Chat.user_id,
                     User.name.label("name"),
                     Chat.message,
+                    Chat.type,
+                    Chat.poll_id,
                     func.count(ChatLikes.id).label("likes_count"),
                     liked_subquery.label("is_liked"),
                     Chat.created_at,
@@ -94,22 +84,46 @@ def get_all_chats(current_user: User | None):
                 .order_by(Chat.created_at.asc())
                 .all()
             )
+        else:
+            # If no user logged in, skip is_liked check
+            chats = base_query.all()
 
-            chat_list = [
-                {
-                    "id": c.id,
-                    "user_id": c.user_id,
-                    "name": c.name,
-                    "message": c.message,
-                    "likes": c.likes_count,
-                    "is_liked": c.is_liked,
-                    "created_at": c.created_at,
+        # Fetch all polls and their options in one go
+        poll_ids = [c.poll_id for c in chats if c.poll_id]
+        polls_map = {}
+        if poll_ids:
+            polls = (
+                db.query(Poll)
+                .options(joinedload(Poll.options))
+                .filter(Poll.id.in_(poll_ids))
+                .all()
+            )
+            for poll in polls:
+                polls_map[poll.id] = {
+                    "id": poll.id,
+                    "question": poll.question,
+                    "options": [{"id": o.id, "text": o.text, "vote_percentage": 0} for o in poll.options],
                 }
-                for c in chats
-            ]
+
+        # Final chat list mapping
+        chat_list = []
+        for c in chats:
+            chat_item = {
+                "id": c.id,
+                "user_id": c.user_id,
+                "name": c.name,
+                "message": c.message,
+                "type": c.type,
+                "likes": c.likes_count,
+                "is_liked": getattr(c, "is_liked", False),
+                "created_at": c.created_at,
+                "poll": polls_map.get(c.poll_id) if c.poll_id else None,
+            }
+            chat_list.append(chat_item)
 
         return {"totalMessages": len(chat_list), "messages": chat_list}
     finally:
         db.close()
+
 
 
