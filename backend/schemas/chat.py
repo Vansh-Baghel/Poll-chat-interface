@@ -9,6 +9,7 @@ class ChatItem(BaseModel):
     message: str
     likes: int
     created_at: datetime
+    is_liked: bool
 
 class GetChatResponse(BaseModel):
     totalMessages: int
@@ -21,3 +22,4 @@ class AddChatResponse(BaseModel):
 class AddChatRequest(BaseModel):
     message: str
     user_id: int
+

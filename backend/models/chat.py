@@ -8,7 +8,10 @@ class Chat(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     message = Column(Text, nullable=False)
+    type = Column(Text, nullable=False)
     likes = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="chats")
+    poll_id = Column(Integer, ForeignKey("polls.id"), nullable=True)
+    poll = relationship("Poll", back_populates="chat", lazy="joined")

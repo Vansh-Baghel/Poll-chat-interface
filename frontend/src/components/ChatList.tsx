@@ -40,7 +40,7 @@ export default function ChatList({
   return (
     <div className="flex flex-col space-y-3">
       {messages.map((msg) => (
-        <ChatMessage key={msg.id} message={msg} />
+        <ChatMessage key={msg.id} message={msg} onSetMessages={onSetMessages} />
       ))}
       <div ref={bottomRef} />
     </div>

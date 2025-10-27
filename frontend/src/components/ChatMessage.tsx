@@ -3,13 +3,42 @@ import { ChatItem } from "@/types";
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { Delete, Heart, HeartIcon, MoreVertical, Trash } from "lucide-react";
-import { Spinner } from "./ui/Spinner";
+import { Spinner } from "./ui/spinner";
+import { toggleLikeChat } from "@/apis";
 
-const ChatMessage = ({ message }: { message: ChatItem }) => {
+const ChatMessage = ({
+  message,
+  onSetMessages,
+}: {
+  message: ChatItem;
+  onSetMessages: React.Dispatch<React.SetStateAction<ChatItem[]>>;
+}) => {
   const formattedTime = useFormattedTime(message.created_at);
   const [hovered, setHovered] = useState(false);
   const { isRight } = message;
   const [loading, setLoading] = useState<boolean>(false);
+
+  const toggleLikeHandler = async () => {
+    setLoading(true);
+    try {
+      await toggleLikeChat(message.id);
+      onSetMessages((prevMessages) =>
+        prevMessages.map((prevMsg) =>
+          prevMsg.id === message.id
+            ? {
+                ...prevMsg,
+                is_liked: !prevMsg.is_liked,
+                likes: prevMsg.is_liked ? prevMsg.likes - 1 : prevMsg.likes + 1,
+              }
+            : prevMsg
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling like:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -46,9 +75,13 @@ const ChatMessage = ({ message }: { message: ChatItem }) => {
             {loading ? (
               <Spinner size="small" className="w-5" />
             ) : (
-              <HeartIcon
-                className={`w-5 h-5 ${true ? "fill-red-400" : "hover:fill-red-100"}`}
-              />
+              <div className="flex items-center gap-1">
+                <HeartIcon
+                  className={`w-5 h-5 ${message.is_liked ? "fill-red-400" : "hover:fill-red-100"}`}
+                  onClick={toggleLikeHandler}
+                />
+                <span>{message.likes}</span>
+              </div>
             )}
           </Button>
 

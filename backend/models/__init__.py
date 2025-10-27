@@ -1,7 +1,8 @@
 from .chat_likes import ChatLikes
 from .user import User
 from .poll import Poll
-from .option import Option
+from .poll_option import PollOption
+from .poll_vote import PollVote
 from .chat import Chat
 
-__all__ = ["User", "Poll", "Option", "Chat", "ChatLikes"]
+__all__ = ["User", "Poll", "PollOption", "PollVote", "Chat", "ChatLikes"]

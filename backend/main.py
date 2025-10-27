@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import Base, engine, SessionLocal
 from models import *  # imports all models
 import uvicorn
-from routers import auth_router, chat_router
+from routers import auth_router, chat_router, chat_likes_router, poll_router
 import logging
 
 logging.basicConfig(
@@ -27,6 +27,8 @@ app.add_middleware(
 
 app.include_router(auth_router.router)
 app.include_router(chat_router.router)
+app.include_router(chat_likes_router.router)
+app.include_router(poll_router.router)
 
 # Add dummy users only once
 def create_dummy_users():

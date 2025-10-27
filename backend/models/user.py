@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -11,5 +11,4 @@ class User(Base):
     password = Column(String(200), nullable=False)
 
     # Relationships
-    polls = relationship("Poll", back_populates="creator")
     chats = relationship("Chat", back_populates="user")

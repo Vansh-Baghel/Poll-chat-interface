@@ -14,6 +14,7 @@ import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { showSuccessToast } from "@/lib/utils";
 import { useAuth } from "./contexts/auth.context";
+import { loginWithPassword } from "@/apis";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -32,13 +33,13 @@ export default function Login() {
 
   const handleLogin = async () => {
     try {
-      const res = await axios.post("http://localhost:8000/login", {
-        email,
-        password,
-      });
+      const res = await loginWithPassword(email, password);
+
       setMessage(`Welcome, ${res.data.name}!`);
+      
       showSuccessToast("Login successful!");
       const userData = { id: res.data.id, email: res.data.email, name: res.data.name };
+
       login(userData, res.data.access_token);
       navigate({ to: "/" });
     } catch (err) {

@@ -16,7 +16,7 @@ export default function Header() {
   };
 
   return (
-    <div className="flex justify-between items-center p-4 border-b bg-white shadow-sm">
+    <div className="flex justify-between items-center sticky top-0 z-40 p-4 border-b bg-white shadow-sm">
       <h1 className="text-2xl font-semibold">Chats</h1>
       <div className="flex items-center gap-4">
         {!user ? (

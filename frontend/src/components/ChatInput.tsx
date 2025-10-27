@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { useAuth } from "./contexts/auth.context";
 import axios from "axios";
 import { ChatItem } from "@/types";
+import { addChat } from "@/apis";
 
 export default function ChatInput({
   onSetMessages,
@@ -18,28 +19,16 @@ export default function ChatInput({
   const [isPollModalOpen, setPollModalOpen] = useState(false);
   const { user } = useAuth();
   const token = localStorage.getItem("token");
-  console.log("🚀 ~ ChatInput ~ token:", token);
 
   const handleSend = async () => {
     if (!message.trim()) return;
     if (!user) toast.error("Please login to send messages.");
     else {
       try {
-        const res = await axios.post(
-          "http://localhost:8000/add-chat",
-          {
-            user_id: user.id,
-            message,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`, // 👈 token here
-            },
-          }
-        );
+        const res = await addChat(user.id, message);
 
         const newMsg: ChatItem = { ...res.data, isRight: true };
-        onSetMessages((prev: ChatItem[]) => [...prev, newMsg]); // update state immediately
+        onSetMessages((prev: ChatItem[]) => [...prev, newMsg]); 
       } catch (error) {
         toast.error("Failed to send message.");
       } finally {
