@@ -27,7 +27,7 @@ def add_chat(message: str, current_user: User):
         # Refresh to get updated fields like id, created_at
         db.refresh(new_chat)
 
-        return {"id": new_chat.id, "user_id":current_user.id, "name": current_user.name, "message": new_chat.message, "likes": new_chat.likes, "created_at": new_chat.created_at, "is_liked": False}
+        return {"id": new_chat.id, "user_id":current_user.id, "type": new_chat.type, "name": current_user.name, "message": new_chat.message, "likes": new_chat.likes, "created_at": new_chat.created_at, "is_liked": False}
     finally:
         db.close()
 

@@ -2,21 +2,22 @@ import { useFormattedTime } from "@/hooks/useFormattedTime";
 import { ChatItem } from "@/types";
 import React, { useState } from "react";
 import { Button } from "./ui/button";
-import { Delete, Heart, HeartIcon, MoreVertical, Trash } from "lucide-react";
+import { HeartIcon, Trash } from "lucide-react";
 import { Spinner } from "./ui/spinner";
 import { toggleLikeChat } from "@/apis";
 
-const ChatMessage = ({
-  message,
-  onSetMessages,
-}: {
+interface ChatMessageProps {
   message: ChatItem;
   onSetMessages: React.Dispatch<React.SetStateAction<ChatItem[]>>;
+}
+
+const ChatMessage: React.FC<ChatMessageProps> = ({
+  message,
+  onSetMessages,
 }) => {
   const formattedTime = useFormattedTime(message.created_at);
-  const [hovered, setHovered] = useState(false);
   const { isRight } = message;
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   const toggleLikeHandler = async () => {
     setLoading(true);
@@ -45,53 +46,55 @@ const ChatMessage = ({
       className={`relative flex items-start ${
         isRight ? "justify-end" : "justify-start"
       }`}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
-      {/* Message bubble */}
       <div
-        className={`min-w-[15%] max-w-[70%] rounded-2xl shadow-sm p-3 ${
+        className={`min-w-[300px] max-w-[70%] rounded-2xl shadow-sm p-3 ${
           isRight
             ? "bg-purple-100 text-right"
             : "bg-green-50 text-left self-start"
         }`}
       >
-        <div
-          className={`font-medium text-sm ${
-            isRight ? "text-purple-500" : "text-green-500"
-          }`}
-        >
-          {message.name}
-        </div>
+        {!isRight && (
+          <div
+            className={`font-medium text-sm ${
+              isRight ? "text-purple-500" : "text-green-500"
+            }`}
+          >
+            {message.name}
+          </div>
+        )}
         <div className="text-gray-700">{message.message}</div>
-        <div className="text-xs text-gray-400 mt-1">{formattedTime}</div>
 
-        <div className={`${isRight ? "float-left" : "float-right"} flex gap-2`}>
-          {/* Like Button */}
-          <Button
-            className={`h-9 p-2 bg-white rounded-lg`}
-            // onClick={handleFavoriteClick}
+        <div className="flex justify-between items-end pt-2">
+          <div
+            className={`${isRight ? "float-left" : "float-right"} flex gap-2`}
           >
-            {loading ? (
-              <Spinner size="small" className="w-5" />
-            ) : (
-              <div className="flex items-center gap-1">
-                <HeartIcon
-                  className={`w-5 h-5 ${message.is_liked ? "fill-red-400" : "hover:fill-red-100"}`}
+            <Button className="h-9 p-2 bg-white rounded-lg">
+              {loading ? (
+                <Spinner size="small" className="w-5" />
+              ) : (
+                <div
+                  className="flex items-center gap-1"
                   onClick={toggleLikeHandler}
-                />
-                <span>{message.likes}</span>
-              </div>
-            )}
-          </Button>
+                >
+                  <HeartIcon
+                    className={`w-5 h-5 ${
+                      message.is_liked ? "fill-red-400" : "hover:fill-red-100"
+                    }`}
+                  />
+                  <span>{message.likes}</span>
+                </div>
+              )}
+            </Button>
 
-          {/* Dropdown Button */}
-          <Button
-            size="icon"
-            className="h-9 p-2 bg-white rounded-lg hover:bg-gray-100 transition"
-          >
-            <Trash size={16} />
-          </Button>
+            <Button
+              size="icon"
+              className="h-9 p-2 bg-white rounded-lg hover:bg-gray-100 transition"
+            >
+              <Trash size={16} />
+            </Button>
+          </div>
+          <div className="text-xs text-gray-400 mt-1">{formattedTime}</div>
         </div>
       </div>
     </div>

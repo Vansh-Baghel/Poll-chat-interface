@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
 import { ChatItem } from "@/types";
-import { useAuth } from "./contexts/auth.context";
-import { useFormattedTime } from "@/hooks/useFormattedTime";
+import { useEffect, useRef } from "react";
 import ChatMessage from "./ChatMessage";
+import { useAuth } from "./contexts/auth.context";
+import PollMessage from "./PollMessage";
 
 export default function ChatList({
   messages,
@@ -12,7 +12,7 @@ export default function ChatList({
   onSetMessages: React.Dispatch<React.SetStateAction<ChatItem[]>>;
 }) {
   const { user } = useAuth();
- const bottomRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   // Scroll to bottom whenever messages change
   useEffect(() => {
@@ -40,7 +40,21 @@ export default function ChatList({
   return (
     <div className="flex flex-col space-y-3">
       {messages.map((msg) => (
-        <ChatMessage key={msg.id} message={msg} onSetMessages={onSetMessages} />
+        <div>
+          {msg.type === "chat" ? (
+            <ChatMessage
+              key={msg.id}
+              message={msg}
+              onSetMessages={onSetMessages}
+            />
+          ) : (
+            <PollMessage
+              key={msg.id}
+              message={msg}
+              onSetMessages={onSetMessages}
+            />
+          )}
+        </div>
       ))}
       <div ref={bottomRef} />
     </div>

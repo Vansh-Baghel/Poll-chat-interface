@@ -9,6 +9,7 @@ class ChatItem(BaseModel):
     id: int
     name: str
     user_id: int
+    type: str
     message: Optional[str] = None
     likes: int
     created_at: datetime
