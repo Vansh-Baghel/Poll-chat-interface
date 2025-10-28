@@ -1,16 +1,116 @@
-# React + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Production Deployment
 
-Currently, two official plugins are available:
+I have hosted the frontend on Vercel and Backend on Render, so you can access the platform using: [Live Demo 🚀](https://poll-chat-interface.vercel.app/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+# Full-Stack Application Setup Guide
 
-## React Compiler
+### If this doesn't work, clone the repository and try the manual approach
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 
-## Expanding the ESLint configuration
+This guide will help you set up and run both the backend and frontend of the application.
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Prerequisites
+
+- Python 3.8 or higher
+- Node.js 14 or higher (if using a Node-based frontend)
+- pip (Python package manager)
+
+## Backend Setup
+
+### 1. Navigate to the backend directory
+
+```bash
+cd backend
+```
+
+### 2. Create a Python virtual environment
+
+```bash
+python -m venv venv
+```
+
+or on some systems:
+
+```bash
+python3 -m venv venv
+```
+
+### 3. Activate the virtual environment
+
+**On Windows:**
+```bash
+venv\Scripts\activate
+```
+
+**On macOS/Linux:**
+```bash
+source venv/bin/activate
+```
+
+### 4. Install required packages
+
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Run the backend server
+
+```bash
+python3 main.py
+```
+
+or depending on your setup:
+
+The backend should now be running on `http://localhost:8000` (or the port specified in your configuration).
+
+## Frontend Setup
+
+### 1. Navigate to the frontend directory
+
+```bash
+cd frontend
+```
+
+### 2. Create a `.env` file
+
+Create a `.env` file in the frontend directory:
+
+
+**Note:** If your framework uses a different environment variable prefix (like `VITE_` for Vite), adjust accordingly:
+
+```env
+VITE_BACKEND_URL=http://localhost:8000
+```
+
+### 3. Install dependencies
+
+```bash
+npm install
+```
+
+### 4. Run the frontend development server
+
+```bash
+npm run dev
+```
+
+The frontend should now be running on `http://localhost:5173/` (default for most frameworks).
+
+## Project Structure
+
+```
+.
+├── backend/
+│   ├── venv/
+│   ├── requirements.txt
+│   └── app.py
+└── frontend/
+    ├── .env
+    ├── package.json
+    └── src/
+```
+
+## Additional Notes
+
+- Always activate the virtual environment before working on the backend
