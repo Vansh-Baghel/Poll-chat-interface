@@ -36,7 +36,7 @@ export const deleteChat = (user_id: number, chat_id: number) => {
   );
 };
 
-export const voteChat = (poll_id: number, option_id: number) => {
+export const votePoll = (poll_id: number, option_id: number) => {
   return axios.post(
     `http://localhost:8000/vote-poll`, {
       poll_id,

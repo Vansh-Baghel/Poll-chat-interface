@@ -11,6 +11,7 @@ export type PollOption = {
 };
 
 export type Poll = {
+  id: number;
   question: string;
   options: PollOption[];
 }

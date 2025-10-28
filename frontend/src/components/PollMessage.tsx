@@ -3,7 +3,7 @@ import { ChatItem } from "@/types";
 import { useFormattedTime } from "@/hooks/useFormattedTime";
 import { Button } from "./ui/button";
 import { HeartIcon, Trash } from "lucide-react";
-import { deleteChat, toggleLikeChat } from "@/apis";
+import { deleteChat, toggleLikeChat, votePoll } from "@/apis";
 import { Spinner } from "./ui/spinner";
 import DeleteConfirmModal from "@/modals/DeleteConfirmModal";
 import { toast } from "sonner";
@@ -16,10 +16,11 @@ interface PollMessageProps {
 const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
   const formattedTime = useFormattedTime(message.created_at);
   const [loading, setLoading] = React.useState(false);
+  const [votedOptionId, setVotedOptionId] = useState<number | null>(null); // track vote
   const { isRight } = message;
   const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 
-  
+  if (!message.poll) return null;
 
   const deleteOnClickHandler = async () => {
     const { data } = await deleteChat(message.user_id, message.id);
@@ -34,8 +35,8 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
     setLoading(true);
     try {
       await toggleLikeChat(message.id);
-      onSetMessages((prevMessages) => {
-        return prevMessages.map((prevMsg) =>
+      onSetMessages((prevMessages) =>
+        prevMessages.map((prevMsg) =>
           prevMsg.id === message.id
             ? {
                 ...prevMsg,
@@ -43,8 +44,8 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
                 likes: prevMsg.is_liked ? prevMsg.likes - 1 : prevMsg.likes + 1,
               }
             : prevMsg
-        );
-      });
+        )
+      );
     } catch (error) {
       console.error("Error toggling like:", error);
     } finally {
@@ -52,7 +53,33 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
     }
   };
 
-  if (!message.poll) return null;
+  const handleVote = async (optionId: number) => {
+    try {
+      if (message.poll == null) return;
+      if (votedOptionId == null || votedOptionId != optionId) setVotedOptionId(optionId);
+      else setVotedOptionId(null); // Reset if no option selected
+      const { data } = await votePoll(message.poll.id, optionId);
+
+      // Update poll in messages
+      onSetMessages((prevMessages) =>
+        prevMessages.map((prevMsg) =>
+          prevMsg.id === message.id
+            ? {
+                ...prevMsg,
+                poll: {
+                  ...prevMsg.poll!,
+                  options: data.poll.options,
+                },
+              }
+            : prevMsg
+        )
+      );
+    } catch (error) {
+      console.error("Error voting on poll:", error);
+      toast.error("Failed to record vote");
+      setVotedOptionId(null);
+    }
+  };
 
   return (
     <div
@@ -76,21 +103,34 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
             {message.name}
           </div>
         )}
+
         <div className="font-medium text-black mb-2">
           {message.poll.question}
         </div>
 
         <div className="flex flex-col gap-2">
           {message.poll.options.map((option) => (
-            <div
+            <Button
               key={option.id}
-              className="flex items-center justify-between border rounded-lg px-3 py-2 bg-white"
+              onClick={() => handleVote(option.id)}
+              className={`flex items-center w-full justify-center border rounded-lg px-3 py-2 bg-white transition
+                ${
+                  votedOptionId === option.id
+                    ? "border-purple-500 bg-purple-50"
+                    : "hover:bg-gray-50"
+                }
+                ${votedOptionId ? "cursor-not-allowed opacity-80" : ""}
+              `}
             >
               <span>{option.text}</span>
-              <span className="text-sm text-gray-500">
-                {option.vote_percentage ?? 0}%
-              </span>
-            </div>
+
+              {/* Show percentage only after voting */}
+              {votedOptionId && (
+                <span className="text-sm pl-2 text-gray-500">
+                  {option.vote_percentage?.toFixed(1) ?? 0}%
+                </span>
+              )}
+            </Button>
           ))}
         </div>
 
@@ -130,8 +170,9 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
               )}
             </div>
           </div>
+
           <DeleteConfirmModal
-            content="Are you confirm you want to delete this chat?"
+            content="Are you sure you want to delete this chat?"
             onCancel={() => setDeleteModalOpen(false)}
             onOk={deleteOnClickHandler}
             open={deleteModalOpen}
