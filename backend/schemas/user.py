@@ -9,9 +9,3 @@ class UserResponse(BaseModel):
     id: int
     name: str
     email: str
-
-class LogoutResponse(BaseModel):
-    message: str
-
-class LogoutRequest(BaseModel):
-    email: str

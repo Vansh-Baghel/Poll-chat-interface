@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from schemas.user import LoginRequest, UserResponse, LogoutResponse, LogoutRequest
+
+from schemas.user import LoginRequest, UserResponse
 from services.auth_service import login_user
 
 router = APIRouter(tags=["Auth"])

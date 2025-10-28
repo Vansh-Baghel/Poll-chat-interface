@@ -2,7 +2,7 @@ import axios from 'axios'
 import { toast } from 'sonner'
 
 // Create an instance of axios
-const api = axios.create({ baseURL: "http://localhost:8000" })
+const api = axios.create({ baseURL: process.env.VITE_API_URL })
 
 // Add a request interceptor to include the token in the header
 api.interceptors.request.use(
