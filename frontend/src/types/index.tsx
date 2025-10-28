@@ -23,7 +23,7 @@ export type ChatItem = {
   created_at: string;
   isRight: boolean;
   is_liked: boolean;
-  poll?: Poll;
   likes: number;
   type: string;
+  poll?: Poll;
 };

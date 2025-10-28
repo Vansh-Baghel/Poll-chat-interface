@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import ChatMessage from "./ChatMessage";
 import { useAuth } from "./contexts/auth.context";
 import PollMessage from "./PollMessage";
+import { getAllChats } from "@/apis";
 
 export default function ChatList({
   messages,
@@ -22,12 +23,14 @@ export default function ChatList({
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await fetch("http://localhost:8000/get-all-chats");
-        const data = await response.json();
+        const response = await getAllChats();
+        const { data } = response;
+
         const newData = data.messages.map((msg: ChatItem) => ({
           ...msg,
           isRight: msg.user_id === user?.id,
         }));
+
         onSetMessages(newData);
       } catch (error) {
         console.error("Error fetching messages:", error);
@@ -38,7 +41,7 @@ export default function ChatList({
   }, []);
 
   return (
-    <div className="flex flex-col space-y-3">
+    <div className="space-y-3">
       {messages.map((msg) => (
         <div>
           {msg.type === "chat" ? (

@@ -60,6 +60,7 @@ export default function ChatInput({
       <PollModal
         open={isPollModalOpen}
         onClose={() => setPollModalOpen(false)}
+        onSetMessages={onSetMessages}
       />
     </div>
   );

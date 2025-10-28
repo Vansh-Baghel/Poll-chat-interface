@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Body, Header
 from middleware.token import get_current_user
 from schemas.chat import AddChatRequest, GetChatResponse, ChatItem
-from services.chats_service import add_chat, get_all_chats
+from services.chats_service import add_chat, get_all_chats, delete_chat
 from jose import jwt
 from jose.exceptions import JWTError
 from database import SessionLocal
@@ -17,6 +17,14 @@ def add_chat_router(
     current_user: User = Depends(get_current_user)
 ):
     return add_chat(message=chat.message, current_user=current_user)
+
+@router.delete("/delete-chat", response_model=dict)
+def delete_chat_router(
+    user_id: int,
+    chat_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    return delete_chat(user_id, chat_id, current_user)
 
 @router.get("/get-all-chats", response_model=GetChatResponse)
 def get_all_chats_route(authorization: Optional[str] = Header(None)):

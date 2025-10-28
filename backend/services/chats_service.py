@@ -126,4 +126,33 @@ def get_all_chats(current_user: User | None):
         db.close()
 
 
+def delete_chat(user_id: int, chat_id: int, current_user: User):
+    db = SessionLocal()
 
+    try:
+        chat = (
+            db.query(Chat)
+            .filter(Chat.user_id == user_id)
+            .filter(Chat.id == chat_id)
+            .first()
+        )
+
+        if not chat:
+            raise HTTPException(
+                status_code=404,
+                detail="Chat not found"
+            )
+
+        if chat.user_id != current_user.id:
+            raise HTTPException(
+                status_code=403,
+                detail="You are not allowed to delete this chat"
+            )
+
+        db.delete(chat)
+        db.commit()
+
+        return {"id": chat.id, "message": "Chat deleted successfully"}
+
+    finally:
+        db.close()

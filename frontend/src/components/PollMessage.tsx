@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChatItem } from "@/types";
 import { useFormattedTime } from "@/hooks/useFormattedTime";
 import { Button } from "./ui/button";
 import { HeartIcon, Trash } from "lucide-react";
-import { toggleLikeChat } from "@/apis";
+import { deleteChat, toggleLikeChat } from "@/apis";
 import { Spinner } from "./ui/spinner";
+import DeleteConfirmModal from "@/modals/DeleteConfirmModal";
+import { toast } from "sonner";
 
 interface PollMessageProps {
   message: ChatItem;
@@ -15,13 +17,25 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
   const formattedTime = useFormattedTime(message.created_at);
   const [loading, setLoading] = React.useState(false);
   const { isRight } = message;
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+
+  
+
+  const deleteOnClickHandler = async () => {
+    const { data } = await deleteChat(message.user_id, message.id);
+    toast.success(data.message);
+    setDeleteModalOpen(false);
+    onSetMessages((prevMessages) =>
+      prevMessages.filter((prevMsg) => prevMsg.id !== message.id)
+    );
+  };
 
   const toggleLikeHandler = async () => {
     setLoading(true);
     try {
       await toggleLikeChat(message.id);
-      onSetMessages((prevMessages) =>
-        prevMessages.map((prevMsg) =>
+      onSetMessages((prevMessages) => {
+        return prevMessages.map((prevMsg) =>
           prevMsg.id === message.id
             ? {
                 ...prevMsg,
@@ -29,8 +43,8 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
                 likes: prevMsg.is_liked ? prevMsg.likes - 1 : prevMsg.likes + 1,
               }
             : prevMsg
-        )
-      );
+        );
+      });
     } catch (error) {
       console.error("Error toggling like:", error);
     } finally {
@@ -41,9 +55,28 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
   if (!message.poll) return null;
 
   return (
-    <div className="flex justify-start">
-      <div className="bg-green-50 p-4 rounded-2xl shadow-sm w-full max-w-[75%]">
-        <div className="font-medium text-green-600 mb-2">
+    <div
+      className={`relative flex items-start ${
+        isRight ? "justify-end" : "justify-start"
+      }`}
+    >
+      <div
+        className={`min-w-[300px] max-w-[70%] rounded-2xl shadow-sm p-3 ${
+          isRight
+            ? "bg-purple-100 text-right"
+            : "bg-green-50 text-left self-start"
+        }`}
+      >
+        {!isRight && (
+          <div
+            className={`font-medium text-sm ${
+              isRight ? "text-purple-500" : "text-green-500"
+            }`}
+          >
+            {message.name}
+          </div>
+        )}
+        <div className="font-medium text-black mb-2">
           {message.poll.question}
         </div>
 
@@ -86,14 +119,24 @@ const PollMessage = ({ message, onSetMessages }: PollMessageProps) => {
                 )}
               </Button>
 
-              <Button
-                size="icon"
-                className="h-9 p-2 bg-white rounded-lg hover:bg-gray-100 transition"
-              >
-                <Trash size={16} />
-              </Button>
+              {isRight && (
+                <Button
+                  size="icon"
+                  onClick={() => setDeleteModalOpen(true)}
+                  className="h-9 p-2 bg-white rounded-lg hover:bg-gray-100 transition"
+                >
+                  <Trash size={16} />
+                </Button>
+              )}
             </div>
           </div>
+          <DeleteConfirmModal
+            content="Are you confirm you want to delete this chat?"
+            onCancel={() => setDeleteModalOpen(false)}
+            onOk={deleteOnClickHandler}
+            open={deleteModalOpen}
+            title="Delete"
+          />
         </div>
       </div>
     </div>

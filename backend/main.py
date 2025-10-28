@@ -46,7 +46,6 @@ def create_dummy_users():
 
 create_dummy_users()
 
-
 @app.get("/")
 def root():
     return {"message": "Welcome to Polls & Chats API"}

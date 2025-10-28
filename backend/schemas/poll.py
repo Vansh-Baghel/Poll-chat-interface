@@ -24,6 +24,15 @@ class PollOptionCreate(BaseModel):
     text: str
 
 
-class PollCreate(BaseModel):
+class PollCreateRequest(BaseModel):
     question: str
     options: list[PollOptionCreate]
+
+class PollVoteResponse(BaseModel):
+    message: str
+    action: str
+    poll: PollResponse
+
+class VotePollRequest(BaseModel):
+    poll_id: int
+    option_id: int

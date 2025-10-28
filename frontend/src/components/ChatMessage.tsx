@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import { Button } from "./ui/button";
 import { HeartIcon, Trash } from "lucide-react";
 import { Spinner } from "./ui/spinner";
-import { toggleLikeChat } from "@/apis";
+import { deleteChat, toggleLikeChat } from "@/apis";
+import { toast } from "sonner";
+import DeleteConfirmModal from "@/modals/DeleteConfirmModal";
 
 interface ChatMessageProps {
   message: ChatItem;
@@ -18,6 +20,16 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
   const formattedTime = useFormattedTime(message.created_at);
   const { isRight } = message;
   const [loading, setLoading] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
+
+  const deleteOnClickHandler = async () => {
+    const { data } = await deleteChat(message.user_id, message.id);
+    toast.success(data.message);
+    setDeleteModalOpen(false);
+    onSetMessages((prevMessages) =>
+      prevMessages.filter((prevMsg) => prevMsg.id !== message.id)
+    );
+  };
 
   const toggleLikeHandler = async () => {
     setLoading(true);
@@ -69,14 +81,14 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
           <div
             className={`${isRight ? "float-left" : "float-right"} flex gap-2`}
           >
-            <Button className="h-9 p-2 bg-white rounded-lg">
+            <Button
+              className="h-9 p-2 bg-white rounded-lg"
+              onClick={toggleLikeHandler}
+            >
               {loading ? (
                 <Spinner size="small" className="w-5" />
               ) : (
-                <div
-                  className="flex items-center gap-1"
-                  onClick={toggleLikeHandler}
-                >
+                <div className="flex items-center gap-1">
                   <HeartIcon
                     className={`w-5 h-5 ${
                       message.is_liked ? "fill-red-400" : "hover:fill-red-100"
@@ -87,14 +99,24 @@ const ChatMessage: React.FC<ChatMessageProps> = ({
               )}
             </Button>
 
-            <Button
-              size="icon"
-              className="h-9 p-2 bg-white rounded-lg hover:bg-gray-100 transition"
-            >
-              <Trash size={16} />
-            </Button>
+            {isRight && (
+              <Button
+                size="icon"
+                onClick={() => setDeleteModalOpen(true)}
+                className="h-9 p-2 bg-white rounded-lg hover:bg-gray-100 transition"
+              >
+                <Trash size={16} />
+              </Button>
+            )}
           </div>
           <div className="text-xs text-gray-400 mt-1">{formattedTime}</div>
+          <DeleteConfirmModal
+            content="Are you confirm you want to delete this chat?"
+            onCancel={() => setDeleteModalOpen(false)}
+            onOk={deleteOnClickHandler}
+            open={deleteModalOpen}
+            title="Delete"
+          />
         </div>
       </div>
     </div>
